@@ -29,6 +29,7 @@
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
-    }
+    },
+    "description": "Application to find best links related to technologies"
   }
 }

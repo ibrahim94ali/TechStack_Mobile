@@ -7,6 +7,7 @@ export default {
       Home: {
         screens: {
           HomeScreen: 'one',
+          NewTechScreen: 'tw2o',
         },
       },
       Technology: {

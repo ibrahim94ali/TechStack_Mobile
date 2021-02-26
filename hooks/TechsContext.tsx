@@ -1,22 +1,16 @@
-import React, { useState, useEffect, createContext } from "react";
-import { useQuery } from "@apollo/client";
-import { GET_TECHS } from "../graphQL/Queries";
-import { TechnologyI } from "../types";
+import React, { createContext, useContext } from "react";
+import { useLocalObservable, useLocalStore } from "mobx-react";
+import { createTechsStore } from "../TechsStore";
 
-export const TechsContext = createContext<TechnologyI[]>([]);
+export const TechsContext = createContext(createTechsStore());
 
 export default function TechsProvider({ children }: any) {
-  //getting techs
-  const { error, loading, data } = useQuery(GET_TECHS);
-  const [techs, setTechs] = useState([]);
-
-  useEffect(() => {
-    if (data) {
-      setTechs(data.technologies);
-    }
-  }, [data]);
+  const techsStore = useLocalStore(createTechsStore);
+  // const techsStore = useLocalObservable(createTechsStore);
 
   return (
-    <TechsContext.Provider value={techs}>{children}</TechsContext.Provider>
+    <TechsContext.Provider value={techsStore}>{children}</TechsContext.Provider>
   );
 }
+
+export const useTechsStore = () => useContext(TechsContext);

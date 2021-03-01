@@ -1,14 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Button,
-  Modal,
-  StyleSheet,
-  TextInput,
-  View,
-  Text,
-} from "react-native";
+import { Button, Modal, StyleSheet, TextInput, View, Text } from "react-native";
 import {
   FlatList,
   TouchableWithoutFeedback,
@@ -16,35 +8,84 @@ import {
 import Technology from "../components/Technology";
 import { TechnologyI } from "../types";
 import { useTechsStore } from "../hooks/TechsContext";
-import { useMutation, useQuery } from "@apollo/client";
-import { GET_TECHS } from "../graphQL/Queries";
-import { useObserver } from "mobx-react";
-import { ADD_TECH } from "../graphQL/Mutations";
+import { useMutation } from "@apollo/client";
+import { observer } from "mobx-react";
+import { ADD_TECH, DELETE_TECH, EDIT_TECH } from "../graphQL/Mutations";
+import { connectActionSheet } from "@expo/react-native-action-sheet";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+import { autorun } from "mobx";
 
-export default function HomeScreen({ navigation }: any) {
+export function HomeScreen({ navigation }: any) {
+  const { showActionSheetWithOptions } = useActionSheet();
   const techsStore = useTechsStore();
-  //getting techs
-  const { error, loading, data } = useQuery(GET_TECHS);
+
+  const [deleteTechnology, { data: deletedTech }] = useMutation(DELETE_TECH);
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [isEditingTech, setIsEditingTech] = useState<TechnologyI>();
 
   useEffect(() => {
-    if (data) {
-      techsStore.setTechs(data.technologies);
+    if (deletedTech) {
+      techsStore.deleteTech(deletedTech.deleteTechnology.id);
     }
-  }, [data]);
+  }, [deletedTech]);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerTitle:
-        "Technologies" +
-        (techsStore.technologies?.length
-          ? ` (${techsStore.technologies.length})`
-          : ""),
-    });
-  }, [techsStore.technologies]);
+  useEffect(() =>
+    autorun(() => {
+      navigation.setOptions({
+        headerTitle:
+          "Technologies" +
+          (techsStore.technologies?.length
+            ? ` (${techsStore.technologies.length})`
+            : ""),
+      });
+    })
+  );
 
-  return useObserver(() => (
+  const renderItem = (item: TechnologyI, index: number) => (
+    <TouchableWithoutFeedback
+      onPress={() => handlePress(index)}
+      onLongPress={() => showActionSheet(item)}
+    >
+      <Technology item={item} />
+    </TouchableWithoutFeedback>
+  );
+
+  const handlePress = (index: number) => {
+    techsStore.selectTechnology(index);
+    navigation.navigate("Technology");
+  };
+
+  const handleActionSheetActions = (index: number, item: TechnologyI) => {
+    switch (index) {
+      case 0:
+        setIsEditingTech(item);
+        setModalVisible(true);
+        break;
+      case 1:
+        deleteTechnology({
+          variables: {
+            id: item.id,
+          },
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
+  const showActionSheet = (item: TechnologyI) => {
+    showActionSheetWithOptions(
+      {
+        title: item.name,
+        options: ["Rename", "Delete"],
+        cancelButtonIndex: -1,
+      },
+      (index) => handleActionSheetActions(index, item)
+    );
+  };
+
+  return (
     <View style={styles.container}>
       <View
         style={[styles.button, { alignSelf: "center", marginVertical: 30 }]}
@@ -56,49 +97,71 @@ export default function HomeScreen({ navigation }: any) {
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => {
-          Alert.alert("Modal has been closed.");
-          setModalVisible(!modalVisible);
+          setModalVisible(false);
+          setIsEditingTech(undefined);
         }}
       >
-        <AddTechModal onCloseModal={setModalVisible} />
+        <AddEditTechModal
+          onCloseModal={setModalVisible}
+          isEditingTech={isEditingTech}
+        />
       </Modal>
       <FlatList
         data={techsStore.technologies}
-        renderItem={(item) => renderItem(item.item, navigation)}
+        renderItem={({ item, index }) => renderItem(item, index)}
         keyExtractor={(item) => item.id}
       />
     </View>
-  ));
+  );
 }
 
-const AddTechModal = ({ onCloseModal }: any) => {
-  const [name, onNameChange] = React.useState("");
+export default connectActionSheet(observer(HomeScreen));
+
+const AddEditTechModal = ({ onCloseModal, isEditingTech }: any) => {
+  const [name, onNameChange] = useState(
+    isEditingTech ? isEditingTech.name : ""
+  );
 
   const techsStore = useTechsStore();
 
-  const [addTech, { data }] = useMutation(ADD_TECH);
+  const [addTechnology, { data: newTech }] = useMutation(ADD_TECH);
+  const [editTechnology, { data: editedTech }] = useMutation(EDIT_TECH);
 
   useEffect(() => {
-    if (data) {
+    if (newTech) {
       techsStore.addTech({
-        ...data.addTechnology,
+        ...newTech.addTechnology,
         posts: [],
       });
       onCloseModal(false);
     }
-  }, [data]);
+    if (editedTech) {
+      techsStore.editTech(editedTech.updateTechnology.id, name);
+      onCloseModal(false);
+    }
+  }, [newTech, editedTech]);
 
   const handleAddTech = () => {
-    addTech({
+    addTechnology({
       variables: {
         name: name,
+      },
+    });
+  };
+  const handleEditTech = () => {
+    editTechnology({
+      variables: {
+        name: name,
+        id: isEditingTech.id,
       },
     });
   };
   return (
     <View style={styles.modal}>
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Add New Technology</Text>
+        <Text style={styles.cardTitle}>
+          {isEditingTech ? isEditingTech.name : "Add New Technology"}
+        </Text>
         <TextInput
           style={styles.input}
           placeholder="Name"
@@ -108,21 +171,15 @@ const AddTechModal = ({ onCloseModal }: any) => {
           autoFocus
         />
         <View style={styles.button}>
-          <Button title="Save" disabled={!name} onPress={handleAddTech} />
+          <Button
+            title="Save"
+            disabled={!name}
+            onPress={isEditingTech ? handleEditTech : handleAddTech}
+          />
         </View>
       </View>
     </View>
   );
-};
-
-const renderItem = (item: TechnologyI, navigation: any) => (
-  <TouchableWithoutFeedback onPress={(ev) => handlePress(item, navigation)}>
-    <Technology item={item} />
-  </TouchableWithoutFeedback>
-);
-
-const handlePress = (item: TechnologyI, navigation: any) => {
-  navigation.navigate("Technology", item);
 };
 
 const styles = StyleSheet.create({

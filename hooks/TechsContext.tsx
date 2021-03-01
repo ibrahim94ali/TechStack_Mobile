@@ -1,12 +1,11 @@
 import React, { createContext, useContext } from "react";
-import { useLocalObservable, useLocalStore } from "mobx-react";
-import { createTechsStore } from "../TechsStore";
+import { useLocalObservable } from "mobx-react";
+import { TechsStore } from "../TechsStore";
 
-export const TechsContext = createContext(createTechsStore());
+export const TechsContext = createContext(TechsStore);
 
 export default function TechsProvider({ children }: any) {
-  const techsStore = useLocalStore(createTechsStore);
-  // const techsStore = useLocalObservable(createTechsStore);
+  const techsStore = useLocalObservable(() => TechsStore);
 
   return (
     <TechsContext.Provider value={techsStore}>{children}</TechsContext.Provider>

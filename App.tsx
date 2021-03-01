@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import useCachedResources from "./hooks/useCachedResources";
@@ -10,9 +10,12 @@ import {
   ApolloProvider,
   HttpLink,
   from,
+  useQuery,
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
-import TechsProvider from "./hooks/TechsContext";
+import TechsProvider, { useTechsStore } from "./hooks/TechsContext";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
+import { GET_TECHS } from "./graphQL/Queries";
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors) {
@@ -44,13 +47,30 @@ export default function App() {
   } else {
     return (
       <ApolloProvider client={client}>
-        <TechsProvider>
-          <SafeAreaProvider>
-            <Navigation />
-            <StatusBar />
-          </SafeAreaProvider>
-        </TechsProvider>
+        <ActionSheetProvider>
+          <TechsProvider>
+            <SafeAreaProvider>
+              <Navigation />
+              <StatusBar />
+              <GetData />
+            </SafeAreaProvider>
+          </TechsProvider>
+        </ActionSheetProvider>
       </ApolloProvider>
     );
   }
 }
+
+const GetData = () => {
+  const techsStore = useTechsStore();
+
+  //getting techs
+  const { data: techs } = useQuery(GET_TECHS);
+
+  useEffect(() => {
+    if (techs) {
+      techsStore.setTechs(techs.technologies);
+    }
+  }, [techs]);
+  return null;
+};

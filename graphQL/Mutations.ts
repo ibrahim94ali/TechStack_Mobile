@@ -28,6 +28,10 @@ export const ADD_POST = gql`
     addPost(title: $title owner: $owner link: $link date: $date techId: $techId) {
       id
       title
+      owner
+      link
+      date
+      techId
     }
   }`;
 
@@ -35,7 +39,10 @@ export const EDIT_POST = gql`
 mutation updatePost($title: String! $owner: String! $link: String! $date: String! $id: ID!) {
   updatePost(title: $title owner: $owner link: $link date: $date id: $id) {
     id
-    techId
+    title
+    owner
+    link
+    date
   }
 }`;
 

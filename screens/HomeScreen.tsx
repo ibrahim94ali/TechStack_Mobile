@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useLayoutEffect } from "react";
 import { Button, Modal, StyleSheet, TextInput, View, Text } from "react-native";
 import {
   FlatList,
@@ -14,6 +14,8 @@ import { ADD_TECH, DELETE_TECH, EDIT_TECH } from "../graphQL/Mutations";
 import { connectActionSheet } from "@expo/react-native-action-sheet";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { autorun } from "mobx";
+import { Ionicons } from "@expo/vector-icons";
+import Colors from "../constants/Colors";
 
 export function HomeScreen({ navigation }: any) {
   const { showActionSheetWithOptions } = useActionSheet();
@@ -29,6 +31,19 @@ export function HomeScreen({ navigation }: any) {
       techsStore.deleteTech(deletedTech.deleteTechnology.id);
     }
   }, [deletedTech]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Ionicons
+          size={30}
+          style={{ color: Colors.white, marginRight: 15 }}
+          name="add"
+          onPress={() => setModalVisible(true)}
+        />
+      ),
+    });
+  }, [navigation]);
 
   useEffect(() =>
     autorun(() => {
@@ -87,11 +102,6 @@ export function HomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <View
-        style={[styles.button, { alignSelf: "center", marginVertical: 30 }]}
-      >
-        <Button title="Add tech" onPress={() => setModalVisible(true)} />
-      </View>
       <Modal
         animationType="slide"
         transparent={true}

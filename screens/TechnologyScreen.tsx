@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -24,6 +24,7 @@ import { useMutation } from "@apollo/client";
 import { ADD_POST, DELETE_POST, EDIT_POST } from "../graphQL/Mutations";
 import { observer } from "mobx-react";
 import { autorun } from "mobx";
+import { Ionicons } from "@expo/vector-icons";
 
 export function TechnologyScreen({ navigation }: any) {
   const techsStore = useTechsStore();
@@ -34,9 +35,21 @@ export function TechnologyScreen({ navigation }: any) {
 
   const [deletePost, { data: deletedPost }] = useMutation(DELETE_POST);
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Ionicons
+          size={30}
+          style={{ color: Colors.white, marginRight: 15 }}
+          name="add"
+          onPress={() => setModalVisible(true)}
+        />
+      ),
+    });
+  }, [navigation]);
+
   useEffect(() =>
     autorun(() => {
-      console.log("autorun");
       navigation.setOptions({
         headerTitle:
           techsStore.technologies[techsStore.selectedIndex].name +
@@ -193,11 +206,6 @@ export function TechnologyScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <View
-        style={[styles.button, { alignSelf: "center", marginVertical: 30 }]}
-      >
-        <Button title="Add post" onPress={() => setModalVisible(true)} />
-      </View>
       <Modal
         animationType="slide"
         transparent={true}

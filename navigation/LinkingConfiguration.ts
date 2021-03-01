@@ -6,13 +6,12 @@ export default {
     screens: {
       Home: {
         screens: {
-          HomeScreen: 'one',
-          NewTechScreen: 'tw2o',
+          HomeScreen: 'home',
         },
       },
       Technology: {
         screens: {
-          TechnologyScreen: 'two',
+          TechnologyScreen: 'technology',
           },
         },
     },

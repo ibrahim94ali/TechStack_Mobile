@@ -6,8 +6,6 @@ import HomeScreen from "../screens/HomeScreen";
 import TechnologyScreen from "../screens/TechnologyScreen";
 import LinkingConfiguration from "./LinkingConfiguration";
 import Colors from "../constants/Colors";
-import { Ionicons } from "@expo/vector-icons";
-import NewTechModal from "../screens/NewTechModal";
 
 const MyTheme = {
   ...DefaultTheme,
@@ -39,35 +37,8 @@ function RootNavigator() {
         },
       }}
     >
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        // options={{
-        //   headerRight: () => (
-        //     <Ionicons
-        //       size={30}
-        //       style={{ color: Colors.white, marginRight: 15 }}
-        //       name="add"
-        //       onPress={handleAddTech}
-        //     />
-        //   ),
-        // }}
-      />
-      <Stack.Screen name="NewTech" component={NewTechModal} />
-      <Stack.Screen
-        name="Technology"
-        component={TechnologyScreen}
-        // options={{
-        //   headerRight: () => (
-        //     <Ionicons
-        //       size={30}
-        //       style={{ color: Colors.white, marginRight: 15 }}
-        //       name="add"
-        //       onPress={() => handleAddTech}
-        //     />
-        //   ),
-        // }}
-      />
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Technology" component={TechnologyScreen} />
     </Stack.Navigator>
   );
 }

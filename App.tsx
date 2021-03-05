@@ -16,31 +16,30 @@ import { onError } from "@apollo/client/link/error";
 import TechsProvider, { useTechsStore } from "./hooks/TechsContext";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { GET_TECHS } from "./graphQL/Queries";
-
-const errorLink = onError(({ graphQLErrors, networkError }) => {
-  if (graphQLErrors) {
-    graphQLErrors.map(({ message }) => {
-      alert("an error occured. " + message);
-    });
-  }
-  if (networkError) {
-    alert("an error occured. " + networkError.message);
-  }
-});
-const link = from([
-  errorLink,
-  new HttpLink({
-    uri: "http://192.168.0.40:4000/graphql",
-  }),
-]);
-
-const client = new ApolloClient({
-  cache: new InMemoryCache(),
-  link: link,
-});
+import { Alert } from "react-native";
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
+
+  const errorLink = onError(({ graphQLErrors, networkError }) => {
+    if (graphQLErrors) {
+      Alert.alert("API ERROR", graphQLErrors[0].message);
+    }
+    if (networkError) {
+      Alert.alert("NETWORK ERROR", networkError.message);
+    }
+  });
+  const link = from([
+    errorLink,
+    new HttpLink({
+      uri: "https://techstack-api.herokuapp.com/graphql",
+    }),
+  ]);
+
+  const client = new ApolloClient({
+    cache: new InMemoryCache(),
+    link: link,
+  });
 
   if (!isLoadingComplete) {
     return null;

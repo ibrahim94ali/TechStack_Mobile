@@ -2,6 +2,8 @@ import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as React from "react";
 
+import { Image } from "react-native";
+
 import HomeScreen from "../screens/HomeScreen";
 import TechnologyScreen from "../screens/TechnologyScreen";
 import LinkingConfiguration from "./LinkingConfiguration";
@@ -35,6 +37,9 @@ function RootNavigator() {
         headerStyle: {
           backgroundColor: MyTheme.colors.background,
         },
+        headerLeft: () => (
+          <Image source={require("../assets/images/favicon.png")} />
+        ),
       }}
     >
       <Stack.Screen name="Home" component={HomeScreen} />
